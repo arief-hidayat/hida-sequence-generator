@@ -13,7 +13,8 @@ class YearSeqGeneratorService {
         "${nameCd ?: ''}${grp ?: ''}${tnt ?: ''}${seq}"
     }
     def nextNumber(String name, Long tenantId = null) {
-        String yearGroup = "${LocalDate.now().year}"
+        LocalDate now = LocalDate.now()
+        String yearGroup = Holders.config.sequence?."$name"?.monthly ? "${now.year}-${now.monthOfYear}" : "${now.year}"
         String seqNbr = sequenceGeneratorService.nextNumber(name, yearGroup, tenantId)
         Closure formatter = Holders.config.sequence?."$name"?.formatterClosure ?: DEFAULT_FORMATTER
         return formatter.call(name, yearGroup, tenantId, seqNbr)
