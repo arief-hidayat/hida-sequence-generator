@@ -1,4 +1,5 @@
 import grails.plugins.sequence.YearSequenceEntity
+import grails.util.Holders
 
 class HidaSequenceGeneratorGrailsPlugin {
     // the plugin version
@@ -64,7 +65,8 @@ Brief summary/description of the plugin.
         def service = ctx.getBean('yearSeqGeneratorService')
         mc.getNextSequenceNumber = { String group = null ->
             def name = delegate.class.simpleName
-            def tenant = delegate.hasProperty('tenantId') ? delegate.tenantId : null
+            Closure tenantClosure = Holders.config.sequence?."$name"?.tenantClosure ?: null
+            def tenant = tenantClosure ? tenantClosure(delegate) : (delegate.respondsTo('getTenantId') ? delegate.tenantId : null)
             def nbr
             delegate.class.withNewSession {
                 nbr = service.nextNumber(name, tenant)
