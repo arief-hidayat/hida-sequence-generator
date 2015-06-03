@@ -64,12 +64,14 @@ Brief summary/description of the plugin.
     private void addYearSeqDomainMethods(ctx, MetaClass mc) {
         def service = ctx.getBean('yearSeqGeneratorService')
         mc.getNextSequenceNumber = { String group = null ->
-            def name = delegate.class.simpleName
-            Closure tenantClosure = Holders.config.sequence?."$name"?.tenantClosure ?: null
-            def tenant = tenantClosure ? tenantClosure(delegate) : (delegate.respondsTo('getTenantId') ? delegate.tenantId : null)
+//            def name = delegate.class.simpleName
+//            Closure prefixClosure = Holders.config.sequence?."$name"?.prefixClosure ?: null
+//            Closure tenantClosure = Holders.config.sequence?."$name"?.tenantClosure ?: null
+//            def tenant = tenantClosure ? tenantClosure(delegate) : (delegate.respondsTo('getTenantId') ? delegate.tenantId : null)
             def nbr
             delegate.class.withNewSession {
-                nbr = service.nextNumber(name, tenant)
+//                if(prefixClosure) name = prefixClosure(delegate)
+                nbr = service.nextNumber(delegate)
             }
             return nbr
         }
