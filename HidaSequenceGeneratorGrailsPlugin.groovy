@@ -68,12 +68,14 @@ Brief summary/description of the plugin.
 //            Closure prefixClosure = Holders.config.sequence?."$name"?.prefixClosure ?: null
 //            Closure tenantClosure = Holders.config.sequence?."$name"?.tenantClosure ?: null
 //            def tenant = tenantClosure ? tenantClosure(delegate) : (delegate.respondsTo('getTenantId') ? delegate.tenantId : null)
-            def nbr
-            delegate.class.withNewSession {
-//                if(prefixClosure) name = prefixClosure(delegate)
-                nbr = service.nextNumber(delegate)
-            }
-            return nbr
+//            def nbr
+//            delegate.class.withNewSession {
+////                if(prefixClosure) name = prefixClosure(delegate)
+//                nbr = service.nextNumber(delegate)
+//            }
+//            return nbr
+            // make sure the implementation use withNewSession
+            return service.nextNumber(delegate)
         }
     }
 
