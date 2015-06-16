@@ -7,14 +7,14 @@ import org.joda.time.LocalDate
 @Transactional
 class YearSeqGeneratorService {
     def sequenceGeneratorService
-    private static final DEFAULT_FORMATTER = Holders.config.sequence?.defaultFormatter ?: {
-        String prefix, String grp, Long tnt, String seq ->
-        "${prefix ?: ''}${grp ?: ''}${tnt ?: ''}${seq}"
-    }
     private static final TIME_FORMATTER = Holders.config.sequence?.timeFormatter ?: null // pass LocalDate now, boolean monthly
 
-    def nextNumber(def delegateInstance) {
-        String name = delegateInstance.class.simpleName
+    def nextNumber(SequenceGenInput input) {
+        Long seqNbr = sequenceGeneratorService.nextNumberLong(input.prefix, input.group, input.tenantId)
+        return input.format(seqNbr)
+    }
+
+    SequenceGenInput getInput(String name, def delegateInstance) {
         Closure prefixClosure = Holders.config.sequence?."$name"?.prefixClosure ?: null
         String prefix = prefixClosure ? prefixClosure(delegateInstance) : (Holders.config.sequence?."$name"?.prefix ?: Holders.config.sequence?."$name"?.code)
 
@@ -25,13 +25,11 @@ class YearSeqGeneratorService {
         Closure tenantClosure = Holders.config.sequence?."$name"?.tenantClosure ?: null
         Long tenantId = tenantClosure ? tenantClosure(delegateInstance) : (delegateInstance.respondsTo('getTenantId') ? delegateInstance.tenantId : null)
 
-        Closure formatter = Holders.config.sequence?."$name"?.formatterClosure ?: DEFAULT_FORMATTER
-        String nbr
-        delegateInstance.class.withNewSession {
-            Long seqNbr = sequenceGeneratorService.nextNumberLong(prefix, yearGroup, tenantId)
-            String numberFormat = Holders.config.sequence?."$name"?.format ?: '%s'
-            nbr = formatter.call(prefix, yearGroup, tenantId, String.format(numberFormat, seqNbr))
-        }
-        return nbr
+        Closure formatter = Holders.config.sequence?."$name"?.formatterClosure ?: null
+
+        String seqNbrPaddingFormat = Holders.config.sequence?."$name"?.format ?: '%s'
+
+        new SequenceGenInput(name: name, prefix: prefix, group: yearGroup, tenantId: tenantId,
+                seqNbrPaddingFormat : seqNbrPaddingFormat, formatter: formatter)
     }
 }
